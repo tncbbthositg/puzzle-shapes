@@ -20,7 +20,7 @@ boardThickness = 1;
 horizontalMargin = .25;
 
 // vertical margin around pieces
-verticalMargin = .1;
+verticalMargin = 0.1;
 
 // should render game board
 renderBoard = true;
@@ -44,7 +44,7 @@ totalGridWidth = pieceSize * 11;
 
 boardWidth = totalGridWidth + 2 * boardThickness;
 boardDepth = totalGridHeight + 2 * boardThickness;
-boardHeight = boardThickness + pieceHeight + verticalMargin * 2;
+boardHeight = boardThickness + pieceHeight / 2 + verticalMargin;
 
 divotRadius = pieceHeight * divotPercentage;
     
@@ -61,8 +61,8 @@ difference() {
     }
     
     if (showCrossSection) {
-        translate([totalGridWidth / 4, -totalGridHeight / 2, -boardHeight / 2])
-            cube([totalGridWidth / 2, totalGridHeight, boardHeight * 2]);
+        translate([totalGridWidth / 4, -totalGridHeight / 2, -50])
+            cube([totalGridWidth / 2, totalGridHeight, 100]);
     }
 }
 
@@ -135,7 +135,7 @@ module gameBoard() {
 module lid() {
     lidWidth = boardWidth + boardThickness * 2 + horizontalMargin * 2;
     lidDepth = boardDepth + boardThickness * 2 + horizontalMargin * 2;
-    lidHeight = boardHeight + boardThickness + verticalMargin;
+    lidHeight = boardThickness * 2 + verticalMargin * 2 + pieceHeight;
     
     color("pink") {
         translate([-boardThickness * 2 - horizontalMargin, -(lidDepth - 2 * boardThickness - horizontalMargin), -boardThickness - verticalMargin]) {
