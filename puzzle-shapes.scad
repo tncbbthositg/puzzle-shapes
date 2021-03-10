@@ -16,11 +16,17 @@ boardThickness = 1;
 
 /* [Print Settings] */
 
-// margin around pieces
+// horizontal margin around pieces
 horizontalMargin = .25;
+
+// vertical margin around pieces
+verticalMargin = .1;
 
 // should render game board
 renderBoard = true;
+
+// should render lid
+renderLid = true;
 
 // should render pieces
 renderPieces = true;
@@ -28,18 +34,37 @@ renderPieces = true;
 // render only 1 piece as a fit sample
 showOnlySamplePiece = false;
 
+// show cross-section
+showCrossSection = false;
+
 center = pieceSize / 2;
 
 totalGridHeight = pieceSize * 5;
 totalGridWidth = pieceSize * 11;
 
+boardWidth = totalGridWidth + 2 * boardThickness;
+boardDepth = totalGridHeight + 2 * boardThickness;
+boardHeight = boardThickness + pieceHeight + verticalMargin * 2;
+
 divotRadius = pieceHeight * divotPercentage;
     
-if (renderBoard)
-    gameBoard();
+difference() {
+    union() {    
+        if (renderBoard)
+            gameBoard();
 
-if (renderPieces)
-    gamePieces();
+        if (renderPieces)
+            gamePieces();
+
+        if (renderLid)
+            lid();
+    }
+    
+    if (showCrossSection) {
+        translate([totalGridWidth / 4, -totalGridHeight / 2, -boardHeight / 2])
+            cube([totalGridWidth / 2, totalGridHeight, boardHeight * 2]);
+    }
+}
 
 module divot(length, radius) {
     cylinder(h = length, r = radius, $fn = divotSides);
@@ -73,17 +98,64 @@ module divots(radius, includeTops = false) {
     }
 }
 
+module clamps(radius, width, depth) {
+    rotate([0, 90, 0]) {
+        cylinder(h = width, r = radius, $fn = 4);
+        
+        translate([0, depth , 0])
+            cylinder(h = width, r = radius, $fn = 4);
+    }
+
+    rotate([-90, 0, 0]) {
+        cylinder(h = depth, r = radius, $fn = 4);
+        
+        translate([width, 0 , 0])
+            cylinder(h = depth, r = radius, $fn = 4);
+    }
+}
+
 // drawing board
 module gameBoard() {
     color("white") {
-        translate([-boardThickness, -(boardThickness + totalGridHeight), -boardThickness])
+        translate([-boardThickness, -(boardThickness + totalGridHeight), -(boardThickness + verticalMargin)]) {
             difference() {
-                cube([totalGridWidth + 2 * boardThickness, totalGridHeight + 2 * boardThickness, boardThickness + pieceHeight / 2]);
+                cube([boardWidth, boardDepth, boardHeight]);
                 translate([boardThickness, boardThickness, boardThickness]) 
-                    cube([totalGridWidth, totalGridHeight, pieceHeight]);
+                    cube([totalGridWidth, totalGridHeight, boardHeight - boardThickness]);
+                
+                clamps(divotRadius, boardWidth, boardDepth);
             }
+        }
+        translate([0, 0, -verticalMargin])
+            divots(divotRadius * .7);
+    }
+}
 
-        divots(divotRadius * .7);
+// drawing lid
+module lid() {
+    lidWidth = boardWidth + boardThickness * 2 + horizontalMargin * 2;
+    lidDepth = boardDepth + boardThickness * 2 + horizontalMargin * 2;
+    lidHeight = boardHeight + boardThickness + verticalMargin;
+    
+    color("pink") {
+        translate([-boardThickness * 2 - horizontalMargin, -(lidDepth - 2 * boardThickness - horizontalMargin), -boardThickness - verticalMargin]) {
+            difference() {
+                union() {
+                    difference() {
+                        cube([lidWidth, lidDepth, lidHeight]);
+
+                        translate([boardThickness, boardThickness, 0])
+                            cube([lidWidth - 2 * boardThickness, lidDepth - 2 * boardThickness, lidHeight - boardThickness]);
+                    }
+                    
+                    translate([boardThickness, boardThickness, 0])
+                        clamps(divotRadius * .7, lidWidth - 2 * boardThickness, lidDepth - 2 * boardThickness);
+                }
+
+                translate([0, 0, -divotRadius * .7])
+                    cube([lidWidth, lidDepth, divotRadius * .7]);                
+            }
+        }
     }
 }
 
